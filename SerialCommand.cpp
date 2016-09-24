@@ -26,18 +26,30 @@
 /**
  * Constructor makes sure some things are set.
  */
-SerialCommand::SerialCommand(int maxCommands)
+SerialCommand::SerialCommand(int maxCommands, int inputBufferSize)
   : commandList(NULL),
     commandCount(0),
     defaultHandler(NULL),
     term('\n'),           // default terminator for commands, newline character
+	buffer(NULL),
     last(NULL),
     maxCommands(maxCommands),
+	inputBufferSize(inputBufferSize),
     target(&Serial)
 {
+  buffer = (char *)malloc(inputBufferSize + 1);
   strcpy(delim, " "); // strtok_r needs a null-terminated string
   clearBuffer();
   commandList = (SerialCommandCallback *) calloc(maxCommands, sizeof(SerialCommandCallback));
+}
+
+SerialCommand::~SerialCommand(void)
+{
+	// release input buffer
+	if (buffer) {
+		free(buffer);
+		buffer = NULL;
+	}
 }
 
 /**
@@ -123,7 +135,7 @@ void SerialCommand::readSerial() {
       clearBuffer();
     }
     else if (isprint(inChar)) {     // Only printable characters into the buffer
-      if (bufPos < SERIALCOMMAND_BUFFER) {
+      if (bufPos < inputBufferSize) {
         buffer[bufPos++] = inChar;  // Put character into buffer
         buffer[bufPos] = '\0';      // Null terminate
       } else {

@@ -34,7 +34,7 @@
 #include <string.h>
 
 // Size of the input buffer in bytes (maximum length of one command plus arguments)
-#define SERIALCOMMAND_BUFFER 255
+#define SERIALCOMMAND_BUFFER_DEFAULT 32
 // Maximum length of a command excluding the terminating null
 #define SERIALCOMMAND_MAXCOMMANDLENGTH 8
 // Maximum number of commands
@@ -46,7 +46,8 @@
 
 class SerialCommand {
   public:
-    SerialCommand(int maxCommands = SERIALCOMMAND_MAXCOMMANDS_DEFAULT);      // Constructor
+    SerialCommand(int maxCommands = SERIALCOMMAND_MAXCOMMANDS_DEFAULT, int inputBufferSize = SERIALCOMMAND_BUFFER_DEFAULT);      // Constructor
+	~SerialCommand();  // Destructor
     void addCommand(const char *command, void(*function)());  // Add a command to the processing dictionary.
     void setDefaultHandler(void (*function)(const char *));   // A handler to call when no valid command received.
 
@@ -74,10 +75,11 @@ class SerialCommand {
     char delim[2]; // null-terminated list of character to be used as delimeters for tokenizing (default " ")
     char term;     // Character that signals end of command (default '\n')
 
-    char buffer[SERIALCOMMAND_BUFFER + 1]; // Buffer of stored characters while waiting for terminator character
+	char *buffer;				// Buffer of stored characters while waiting for terminator character	
     byte bufPos;                        // Current position in the buffer
     char *last;                         // State variable used by strtok_r during processing
     int  maxCommands;
+	int  inputBufferSize;
 };
 
 #endif //SerialCommand_h
